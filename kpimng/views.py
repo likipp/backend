@@ -91,9 +91,8 @@ class KpiDashViewset(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         ret = dict()
         dep_dict = dict()
-        kpi_list = dict()
+
         dep = request.data.get('name')
-        print(request.data.get('name'))
         kpi = request.data.get('kpi') or None
         kpi_id = self.serializer_kpi.Meta.model.objects.filter(name=kpi).first()
         dep_id = Departments.objects.filter(name=dep).first().id
@@ -108,7 +107,24 @@ class KpiDashViewset(viewsets.ModelViewSet):
             for i in groupkpi:
                 inputlist = i.input_group.all()
                 list_a = dict()
+                kpi_list = dict()
                 kpi = i.kpi.name
-                select(inputlist, list_a, dep_dict, kpi)
-        ret[dep] = dep_dict
+                for item in inputlist:
+                    if item.r_value:
+                        list_a[item.month.strftime('%Y-%m-%d')] = item.r_value
+                    else:
+                        list_a[item.month.strftime('%Y-%m-%d')] = 'NA'
+                    list_sort = sorted(list_a.items(), key=lambda x: x[0])
+                    dep_dict[kpi] = {"t_value": item.groupkpi.t_value,
+                                     "l_limit": item.groupkpi.l_limit,
+                                     "r_value": dict(list_sort)}
+                    kpi_list = {"kpi": kpi,
+                                "t_value": item.groupkpi.t_value,
+                                "l_limit": item.groupkpi.l_limit,
+                                "month": item.month.strftime('%Y-%m-%d'),
+                                "r_value": item.r_value}
+                # kpi_list["kpi"] = kpi
+                ret[dep] = dep_dict
+        # ret[dep] = dep_dict
+        print(ret, 6666)
         return Response(ret)
