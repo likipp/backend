@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils import timezone
 
-from account.models import Departments,User
+from account.models import Departments, User
 
 
 class KPI(models.Model):

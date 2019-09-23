@@ -31,6 +31,11 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'guardian.backends.ObjectPermissionBackend',
+)
+
 REST_FRAMEWORK = {
     # 'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAuthenticated', ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -39,6 +44,9 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
     ),
+    # 'DEFAULT_PERMISSION_CLASSES': (
+    #         'rest_framework.permissions.IsAuthenticated',
+    #     ),
     'DEFAULT_FILTER_BACKENDS': (
         'django_filters.rest_framework.DjangoFilterBackend',
     ),
@@ -48,6 +56,7 @@ REST_FRAMEWORK = {
 # Application definition
 
 INSTALLED_APPS = [
+    'suit',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -60,6 +69,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     'rest_framework_swagger',
+    'guardian'
 ]
 
 MIDDLEWARE = [
@@ -216,3 +226,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+SUIT_CONFIG = {
+    'ADMIN_NAME': 'KPI管理系统',
+    'LIST_PER_PAGE': 10
+}
+
+# MEDIA_URL = 'static/'
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'static')
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, 'static')
+# ]

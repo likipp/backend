@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.contrib.auth import authenticate
+from django.contrib.auth.models import Group
 
 from rest_framework import viewsets, mixins
 from rest_framework import filters
@@ -8,7 +9,7 @@ from rest_framework.exceptions import ParseError, AuthenticationFailed
 # from django_filters import rest_framework as filters
 
 from .models import Departments, User
-from .serializers import DepartmentsSerializer, UserSerializer
+from .serializers import DepartmentsSerializer, UserSerializer, GroupSerializer
 from .filters import DepartmentsFilter, UserFilter
 from rest_framework.permissions import IsAuthenticated
 # from django_filters.rest_framework import DjangoFilterBackend
@@ -63,3 +64,6 @@ class UserViewset(viewsets.ModelViewSet):
     search_fields = ['username', 'nickname', 'dep__name']
 
 
+class GroupViewSet(viewsets.ModelViewSet):
+    queryset = Group.objects.order_by('-id')
+    serializer_class = GroupSerializer
