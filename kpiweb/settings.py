@@ -232,9 +232,13 @@ SUIT_CONFIG = {
     'LIST_PER_PAGE': 10
 }
 
-# MEDIA_URL = 'static/'
-
-MEDIA_ROOT = os.path.join(BASE_DIR, 'static')
+# MEDIA_URL = '/static/'
+#
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # STATICFILES_DIRS = [
 #     os.path.join(BASE_DIR, 'static')
 # ]
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'kpiweb', 'media')
+print(BASE_DIR, 44444)
