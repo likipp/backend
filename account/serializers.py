@@ -36,7 +36,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         # 返回的是当前登录用户名
-        print(self.context['request'].user, 6)
+        # print(self.context['request'].user, 6)
         groups = []
         user_permissions = []
         ret = super(UserSerializer, self).to_representation(instance)
@@ -62,10 +62,10 @@ class UserSerializer(serializers.ModelSerializer):
             ret['dep'] = {'id': dep_instance.id, 'name': dep_instance.name}
         return ret
 
-    def check_permission(self, validated_data):
-        print(self.context['request'].user.is_superuser, 8)
-        print(validated_data, 7)
-        return 11111
+    # def check_permission(self, validated_data):
+    #     print(self.context['request'].user.is_superuser, 8)
+    #     print(validated_data, 7)
+    #     return 11111
 
     def create(self, validated_data):
         instance = super(UserSerializer, self).create(validated_data)
@@ -74,6 +74,7 @@ class UserSerializer(serializers.ModelSerializer):
         return instance
 
     def update(self, instance, validated_data):
+        print(validated_data, 8777, instance)
         instance.set_password(validated_data['password'])
         validated_data.pop('password')
         return super(UserSerializer, self).update(instance, validated_data)
