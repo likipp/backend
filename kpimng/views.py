@@ -58,6 +58,14 @@ class GroupKPIViewset(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter, filters.OrderingFilter)
     search_fields = ['dep__name', 'kpi__name']
 
+    # def create(self, request, *args, **kwargs):
+    #     dep = request.data['dep']
+    #     has_kpi = GroupKPI.objects.filter(request.data['dep']).all()
+    #     if has_kpi:
+    #         kpi = GroupKPI.objects.exclude(request.data['dep'])
+    #     print(request.data)
+    #     pass
+
 
 class KpiInputViewset(viewsets.ModelViewSet):
     """
@@ -91,7 +99,6 @@ class KpiDashViewset(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         ret = dict()
         dep_dict = dict()
-
         dep = request.data.get('name')
         kpi = request.data.get('kpi') or None
         kpi_id = self.serializer_kpi.Meta.model.objects.filter(name=kpi).first()
@@ -126,5 +133,4 @@ class KpiDashViewset(viewsets.ModelViewSet):
                                      "l_limit": item.groupkpi.l_limit,
                                      "r_value": dict(list_sort)}
                 ret[dep] = dep_dict
-        print(ret)
         return Response(ret)

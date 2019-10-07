@@ -6,6 +6,8 @@ from rest_framework import serializers
 
 from .models import Departments, User
 
+from kpimng.models import GroupKPI, KPI
+
 
 class DepartmentsSerializer(serializers.ModelSerializer):
     """
@@ -17,6 +19,14 @@ class DepartmentsSerializer(serializers.ModelSerializer):
         type_name = instance.get_type_display()
         member_set = instance.deps.all()
         member = [{'id': user.id, 'username': user.username, 'nickname': user.nickname} for user in member_set]
+        kpi_set = GroupKPI.objects.filter(dep=instance).all()
+        have_kpi = [{'id': kpi.kpi.id, 'name': kpi.kpi.name} for kpi in kpi_set]
+        prep_kpi = [{'id': index.id, 'name': index.name} for index in KPI.objects.exclude(
+            name__in=[a.kpi.name for a in kpi_set]).all()]
+        for b in kpi_set:
+            print(b.id, b.kpi.name)
+        ret['prep_kpi'] = prep_kpi
+        ret['have_kpi'] = have_kpi
         ret['member'] = member
         ret['type'] = {
             'id': type,
@@ -74,7 +84,6 @@ class UserSerializer(serializers.ModelSerializer):
         return instance
 
     def update(self, instance, validated_data):
-        print(validated_data, 8777, instance)
         instance.set_password(validated_data['password'])
         validated_data.pop('password')
         return super(UserSerializer, self).update(instance, validated_data)
