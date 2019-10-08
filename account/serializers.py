@@ -20,11 +20,11 @@ class DepartmentsSerializer(serializers.ModelSerializer):
         member_set = instance.deps.all()
         member = [{'id': user.id, 'username': user.username, 'nickname': user.nickname} for user in member_set]
         kpi_set = GroupKPI.objects.filter(dep=instance).all()
+        # 返回部门已经有了的KPI列表与还未分配的KPI列表.方便前端穿梭框过滤掉已经分配了的KPI
         have_kpi = [{'id': kpi.kpi.id, 'name': kpi.kpi.name} for kpi in kpi_set]
+        # 使用__in方法调用列表中的条件实现批量过滤,对象必须是一个列表
         prep_kpi = [{'id': index.id, 'name': index.name} for index in KPI.objects.exclude(
             name__in=[a.kpi.name for a in kpi_set]).all()]
-        for b in kpi_set:
-            print(b.id, b.kpi.name)
         ret['prep_kpi'] = prep_kpi
         ret['have_kpi'] = have_kpi
         ret['member'] = member
