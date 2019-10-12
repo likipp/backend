@@ -32,6 +32,8 @@ class GroupKPISerializers(serializers.ModelSerializer):
         dep_instance = instance.dep
         kpi_instance = instance.kpi
         ret = super(GroupKPISerializers, self).to_representation(instance)
+        ret["in_time"] = kpi_instance.in_time
+        ret["mo_time"] = kpi_instance.mo_time
         ret["status"] = {
             "id": status,
             "name": status_name
