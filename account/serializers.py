@@ -32,6 +32,13 @@ class DepartmentsSerializer(serializers.ModelSerializer):
             'id': type,
             'name': type_name
         }
+        if instance.parent:
+            ret['parent'] = {
+                'id': instance.parent.id,
+                'name': instance.parent.name
+            }
+        else:
+            ret['parent'] = ''
         return ret
 
     class Meta:

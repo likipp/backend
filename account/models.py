@@ -9,6 +9,8 @@ class Departments(models.Model):
     )
     name = models.CharField("部门名称", max_length=32)
     type = models.CharField(max_length=32, default='sale', verbose_name='类型', choices=TYPES)
+    parent = models.ForeignKey('self', on_delete=models.PROTECT, db_constraint=False, null=True,
+                               blank=True, verbose_name='上级部门')
 
     class Meta:
         verbose_name_plural = verbose_name = '部门'
