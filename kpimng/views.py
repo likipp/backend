@@ -6,13 +6,24 @@ from rest_framework import viewsets, mixins
 from rest_framework import filters
 from rest_framework.response import Response
 
-from .models import KPI, GroupKPI, KpiInput
+from .models import KPI, GroupKPI, KpiInput, User
 from .serializers import KPISerializers, GroupKPISerializers, KpiInputSerializers
 from account.serializers import DepartmentsSerializer
 from account.models import Departments
 from .filters import KPIFilter, GroupKPIFilter, KpiInputFilter
+# from utils import select
 
-from utils.select import select
+
+def select(inputlist, list_a, dep_dict, kpi):
+    for item in inputlist:
+        if item.r_value:
+            list_a[item.month.strftime('%Y-%m-%d')] = item.r_value
+        else:
+            list_a[item.month.strftime('%Y-%m-%d')] = 'NA'
+        list_sort = sorted(list_a.items(), key=lambda x: x[0])
+        dep_dict[kpi] = {"t_value": item.groupkpi.t_value,
+                         "l_limit": item.groupkpi.l_limit,
+                         "r_value": dict(list_sort)}
 
 
 class KPIViewset(viewsets.ModelViewSet):
@@ -88,6 +99,12 @@ class KpiInputViewset(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter, filters.OrderingFilter)
     search_fields = ['groupkpi__dep__name', 'groupkpi__kpi__name']
 
+    def list(self, request, *args, **kwargs):
+        print(request.user, 222, self)
+        user = User.objects.filter(username=request.user).first()
+        kpis = KpiInput.objects.filter(user=user)
+        return Response(kpis)
+
 
 class KpiDashViewset(viewsets.ModelViewSet):
     queryset = Departments.objects.all()
@@ -107,15 +124,16 @@ class KpiDashViewset(viewsets.ModelViewSet):
             groupkpi = kpi_id.group_kpi.first()
             inputlist = groupkpi.input_group.all()
             list_a = dict()
-            for item in inputlist:
-                if item.r_value:
-                    list_a[item.month.strftime('%Y/%m')] = item.r_value
-                else:
-                    list_a[item.month.strftime('%Y/%m')] = 'NA'
-                list_sort = sorted(list_a.items(), key=lambda x: x[0])
-                dep_dict[kpi] = {"t_value": item.groupkpi.t_value,
-                                 "l_limit": item.groupkpi.l_limit,
-                                 "r_value": dict(list_sort)}
+            # for item in inputlist:
+            #     if item.r_value:
+            #         list_a[item.month.strftime('%Y/%m')] = item.r_value
+            #     else:
+            #         list_a[item.month.strftime('%Y/%m')] = 'NA'
+            #     list_sort = sorted(list_a.items(), key=lambda x: x[0])
+            #     dep_dict[kpi] = {"t_value": item.groupkpi.t_value,
+            #                      "l_limit": item.groupkpi.l_limit,
+            #                      "r_value": dict(list_sort)}
+            select(inputlist, list_a, dep_dict, kpi)
             ret[dep] = dep_dict
         else:
             groupkpi = GroupKPI.objects.filter(dep=dep_id)
@@ -123,14 +141,6 @@ class KpiDashViewset(viewsets.ModelViewSet):
                 inputlist = i.input_group.all()
                 list_a = dict()
                 kpi = i.kpi.name
-                for item in inputlist:
-                    if item.r_value:
-                        list_a[item.month.strftime('%Y/%m')] = item.r_value
-                    else:
-                        list_a[item.month.strftime('%Y/%m')] = 'NA'
-                    list_sort = sorted(list_a.items(), key=lambda x: x[0])
-                    dep_dict[kpi] = {"t_value": item.groupkpi.t_value,
-                                     "l_limit": item.groupkpi.l_limit,
-                                     "r_value": dict(list_sort)}
+                select(inputlist, list_a, dep_dict, kpi)
                 ret[dep] = dep_dict
         return Response(ret)

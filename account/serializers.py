@@ -114,12 +114,17 @@ class GroupSerializer(serializers.ModelSerializer):
         exclude = ['permissions']
 
     def to_representation(self, instance):
+        group_permissions = []
         ret = super(GroupSerializer, self).to_representation(instance)
         if not isinstance(instance, OrderedDict):
             member_set = instance.user_set.all()
+            permissions_instance = instance.permissions.all()
             members = [{'id': user.id, 'name': user.username, 'nickname': user.nickname}
                        for user in member_set]
             ret['members'] = members
+            for permission in permissions_instance:
+                group_permissions.append({'id': permission.id, 'name': permission.name})
+            ret['group_permissions'] = group_permissions
         return ret
 
     def update(self, instance, validated_data):
