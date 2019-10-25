@@ -91,8 +91,11 @@ class UserSerializer(serializers.ModelSerializer):
         return instance
 
     def update(self, instance, validated_data):
-        instance.set_password(validated_data['password'])
-        validated_data.pop('password')
+        print(instance, instance.password)
+        if instance.password == validated_data['password']:
+            validated_data.pop('password')
+        else:
+            instance.set_password(validated_data['password'])
         return super(UserSerializer, self).update(instance, validated_data)
 
     class Meta:
@@ -129,3 +132,10 @@ class GroupSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         pass
+
+
+class PersonalCenterSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        exclude = ['password']

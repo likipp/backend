@@ -5,11 +5,12 @@ from django.contrib.auth.models import Group
 from rest_framework import viewsets, mixins
 from rest_framework import filters
 from rest_framework.views import APIView
+from rest_framework.response import Response
 from rest_framework.exceptions import ParseError, AuthenticationFailed
 # from django_filters import rest_framework as filters
 
 from .models import Departments, User
-from .serializers import DepartmentsSerializer, UserSerializer, GroupSerializer
+from .serializers import DepartmentsSerializer, UserSerializer, GroupSerializer, PersonalCenterSerializer
 from .filters import DepartmentsFilter, UserFilter
 from rest_framework.permissions import IsAuthenticated
 # from django_filters.rest_framework import DjangoFilterBackend
@@ -67,3 +68,23 @@ class UserViewset(viewsets.ModelViewSet):
 class GroupViewSet(viewsets.ModelViewSet):
     queryset = Group.objects.order_by('-id')
     serializer_class = GroupSerializer
+
+
+# class LoginView(APIView):
+#     serializer_class = UserSerializer
+#     authentication_classes = ()
+#
+#     # def get_object(self):
+#     #     return self.request.user
+#     def post(self, request, *args, **kwargs):
+#         ret = {'code': 1000, 'msg': None}
+#         user = request.data.get('username')
+#         password = request.request.data.get('password')
+#         print(user, password)
+#         return Response(1111)
+
+class PersonalCenterViewSet(viewsets.ModelViewSet):
+    serializer_class = PersonalCenterSerializer
+
+    def check_password(self, params):
+        user = authenticate(username=self.request.user.username, password=params.get('old'))

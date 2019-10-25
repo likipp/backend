@@ -56,4 +56,4 @@ class KpiInput(models.Model):
 
     class Meta:
         verbose_name_plural = verbose_name = "KPI数据输入"
-        ordering = ["id"]
+        ordering = ["month"]

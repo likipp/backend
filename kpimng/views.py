@@ -9,21 +9,9 @@ from rest_framework.response import Response
 from .models import KPI, GroupKPI, KpiInput, User
 from .serializers import KPISerializers, GroupKPISerializers, KpiInputSerializers
 from account.serializers import DepartmentsSerializer
-from account.models import Departments
 from .filters import KPIFilter, GroupKPIFilter, KpiInputFilter
-# from utils import select
-
-
-def select(inputlist, list_a, dep_dict, kpi):
-    for item in inputlist:
-        if item.r_value:
-            list_a[item.month.strftime('%Y-%m-%d')] = item.r_value
-        else:
-            list_a[item.month.strftime('%Y-%m-%d')] = 'NA'
-        list_sort = sorted(list_a.items(), key=lambda x: x[0])
-        dep_dict[kpi] = {"t_value": item.groupkpi.t_value,
-                         "l_limit": item.groupkpi.l_limit,
-                         "r_value": dict(list_sort)}
+from utils.permissions import IsOwner, IsSuperUser
+from utils.select import dash_list
 
 
 class KPIViewset(viewsets.ModelViewSet):
@@ -98,49 +86,61 @@ class KpiInputViewset(viewsets.ModelViewSet):
     filterset_class = KpiInputFilter
     filter_backends = (filters.SearchFilter, filters.OrderingFilter)
     search_fields = ['groupkpi__dep__name', 'groupkpi__kpi__name']
+    permission_classes = (IsOwner,)
 
-    def list(self, request, *args, **kwargs):
-        print(request.user, 222, self)
-        user = User.objects.filter(username=request.user).first()
-        kpis = KpiInput.objects.filter(user=user)
-        return Response(kpis)
+    def get_queryset(self):
+        if self.request.user.is_superuser:
+            return KpiInput.objects.all()
+        else:
+            return KpiInput.objects.filter(user=self.request.user)
 
 
 class KpiDashViewset(viewsets.ModelViewSet):
-    queryset = Departments.objects.all()
+    queryset = KpiInput.objects.all()
     serializer_class = KpiInputSerializers
     serializer_dep = DepartmentsSerializer
     serializer_groupkpi = GroupKPISerializers
     serializer_kpi = KPISerializers
+    permission_classes = (IsOwner,)
+
+    def get_queryset(self):
+        if self.request.user.is_superuser:
+            return KpiInput.objects.all()
+        else:
+            return KpiInput.objects.filter(user=self.request.user)
 
     def create(self, request, *args, **kwargs):
         ret = dict()
         dep_dict = dict()
-        dep = request.data.get('name')
         kpi = request.data.get('kpi') or None
         kpi_id = self.serializer_kpi.Meta.model.objects.filter(name=kpi).first()
-        dep_id = Departments.objects.filter(name=dep).first().id
+        dep = self.serializer_dep.Meta.model.objects.filter(name=request.data.get('name')).first().id
         if kpi:
-            groupkpi = kpi_id.group_kpi.first()
-            inputlist = groupkpi.input_group.all()
-            list_a = dict()
-            # for item in inputlist:
+            group_kpi = kpi_id.group_kpi.first()
+            if request.user.is_superuser:
+                input_list = group_kpi.input_group.all()
+            else:
+                input_list = group_kpi.input_group.filter(user=request.user)
+            list_sort = dict()
+            # for item in input_list:
             #     if item.r_value:
-            #         list_a[item.month.strftime('%Y/%m')] = item.r_value
+            #         list_sort[item.month.strftime('%Y/%m/%d')] = item.r_value
             #     else:
-            #         list_a[item.month.strftime('%Y/%m')] = 'NA'
-            #     list_sort = sorted(list_a.items(), key=lambda x: x[0])
+            #         list_sort[item.month.strftime('%Y/%m/%d')] = 'NA'
             #     dep_dict[kpi] = {"t_value": item.groupkpi.t_value,
             #                      "l_limit": item.groupkpi.l_limit,
-            #                      "r_value": dict(list_sort)}
-            select(inputlist, list_a, dep_dict, kpi)
+            #                      "r_value": dict(list_sort.items())}
+            dash_list(input_list, list_sort, dep_dict, kpi)
             ret[dep] = dep_dict
         else:
-            groupkpi = GroupKPI.objects.filter(dep=dep_id)
+            groupkpi = GroupKPI.objects.filter(dep=dep)
             for i in groupkpi:
-                inputlist = i.input_group.all()
-                list_a = dict()
+                if request.user.is_superuser:
+                    input_list = i.input_group.all()
+                else:
+                    input_list = i.input_group.filter(user=request.user)
+                list_sort = dict()
                 kpi = i.kpi.name
-                select(inputlist, list_a, dep_dict, kpi)
+                dash_list(input_list, list_sort, dep_dict, kpi)
                 ret[dep] = dep_dict
         return Response(ret)
